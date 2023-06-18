@@ -27,8 +27,20 @@ namespace ApiProjectSabaipare.Data
                 new IdentityRole { Name = "Member", NormalizedName = "MEMBER" },
                 new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" }
             );
+
+            builder.Entity<Product>()
+            .HasData(
+            new Product { Id = 1, Name = "Product01", Price = 10, QuantityInStock = 1, Description = "Test", Type = "food" },
+            new Product { Id = 2, Name = "Product02", Price = 10, QuantityInStock = 1, Description = "Test", Type = "food" },
+            new Product { Id = 3, Name = "Product03", Price = 10, QuantityInStock = 1, Description = "Test", Type = "food" },
+            new Product { Id = 4, Name = "Product04", Price = 10, QuantityInStock = 1, Description = "Test", Type = "food" },
+            new Product { Id = 5, Name = "Product05", Price = 10, QuantityInStock = 1, Description = "Test", Type = "food" }
+            );
+
         }
 
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
 
 
     }
