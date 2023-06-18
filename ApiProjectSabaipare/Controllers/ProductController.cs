@@ -56,11 +56,13 @@ namespace ApiProjectSabaipare.Controllers
             if (result == null) return NotFound();
 
 
-            await _productService.UpdateAsync(productRequest);
+            var resultUpdate = await _productService.UpdateAsync(productRequest);
+            if (resultUpdate != null) return BadRequest(resultUpdate);
 
 
             return Ok();
         }
+
 
 
         [HttpDelete("{id}")]

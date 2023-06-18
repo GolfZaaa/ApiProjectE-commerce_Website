@@ -1,4 +1,5 @@
 ﻿using ApiProjectSabaipare.Models;
+using ApiProjectSabaipare.Models.CartAccount;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,7 @@ namespace ApiProjectSabaipare.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<Cart> Carts { get; set; }
 
 
     }

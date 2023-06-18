@@ -70,21 +70,68 @@ namespace ApiProjectSabaipare.Services
         }
 
 
-        public async Task UpdateAsync(ProductRequest request)
+        public async Task<string> UpdateAsync(ProductRequest request)
         {
+            //ตรวจสอบและอัพโหลดไฟล์
+            (string errorMessage, List<string> imageNames) = await UploadImageAsync(request.FormFiles);
+            if (!string.IsNullOrEmpty(errorMessage)) return errorMessage;
+
+
             var result = _mapper.Map<Product>(request);
-
-
             _dataContext.Products.Update(result);
             await _dataContext.SaveChangesAsync();
+
+
+            //ตรวจสอบและจัดการกับไฟล์ที่ส่งเข้ามาใหม่
+            if (imageNames.Count > 0)
+            {
+                var images = new List<ProductImage>();
+                foreach (var image in imageNames)
+                {
+                    images.Add(new ProductImage { ProductId = result.Id, Image = image });
+                }
+
+
+                //ลบไฟล์เดิม
+                var oldImages = await _dataContext.ProductImages
+                    .Where(p => p.ProductId == result.Id).ToListAsync();
+                if (oldImages != null)
+                {
+                    //ลบไฟล์ใน database
+                    _dataContext.ProductImages.RemoveRange(oldImages);
+
+
+                    //ลบไฟล์ในโฟลเดอร์
+                    var files = oldImages.Select(p => p.Image).ToList();
+                    await _uploadFileService.DeleteFileImages(files);
+                }
+
+
+                //ใส่ไฟล์เข้าไปใหม่
+                await _dataContext.ProductImages.AddRangeAsync(images);
+                await _dataContext.SaveChangesAsync();
+            }
+            return null;
         }
 
 
         public async Task DeleteAsync(Product product)
         {
+            //ค้นหาและลบไฟล์ภาพ
+            var oldImages = await _dataContext.ProductImages
+                .Where(p => p.ProductId == product.Id).ToListAsync();
+            if (oldImages != null)
+            {
+                //ลบไฟล์ใน database
+                _dataContext.ProductImages.RemoveRange(oldImages);
+                //ลบไฟล์ในโฟลเดอร์
+                var files = oldImages.Select(p => p.Image).ToList();
+                await _uploadFileService.DeleteFileImages(files);
+            }
             _dataContext.Products.Remove(product);
             await _dataContext.SaveChangesAsync();
         }
+
 
 
         public async Task<List<Product>> SearchAsync(string name)

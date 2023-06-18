@@ -86,5 +86,25 @@ namespace ApiProjectSabaipare.Services
 
         public bool ValidationSize(long fileSize) => _configuration.GetValue<long>("FileSizeLimit") > fileSize;
 
+
+        public Task DeleteFileImages(List<string> files)
+        {
+            string wwwRootPath = _webHostEnvironment.WebRootPath;
+
+
+            foreach (var item in files)
+            {
+                var file = Path.Combine("images", item);
+                var oldImagePath = Path.Combine(wwwRootPath, file);
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+            return Task.CompletedTask;
+        }
+
+
+
     }
 }
