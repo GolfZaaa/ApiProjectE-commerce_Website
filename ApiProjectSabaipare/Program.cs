@@ -1,6 +1,7 @@
 using ApiProjectSabaipare.Data;
 using ApiProjectSabaipare.Models;
 using ApiProjectSabaipare.Services;
+using ApiProjectSabaipare.Services.IService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                        });
 
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 #endregion

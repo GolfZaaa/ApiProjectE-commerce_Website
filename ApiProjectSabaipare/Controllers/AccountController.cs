@@ -1,6 +1,7 @@
 ﻿using ApiProjectSabaipare.DTOs;
 using ApiProjectSabaipare.Models;
 using ApiProjectSabaipare.Services;
+using ApiProjectSabaipare.Services.IService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,66 +18,56 @@ namespace ApiProjectSabaipare.Controllers
     {
         private readonly TokenService _tokenService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAccountService _accountService;
 
-        public AccountController(TokenService tokenService,UserManager<ApplicationUser> userManager)
+        public AccountController(IAccountService accountService, UserManager<ApplicationUser> userManager)
         {
-            _tokenService = tokenService;
+            _accountService = accountService;
             _userManager = userManager;
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var result = await _userManager.Users.ToListAsync();
-            List<Object> users = new();
-            foreach (var user in result)
-            {
-                var userRole = await _userManager.GetRolesAsync(user);
-                users.Add(new { user.UserName, userRole });
-            }
+            var users = await _accountService.GetUsersAsync();
             return Ok(users);
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
-            var user = await _userManager.FindByNameAsync(loginDto.Username);
+            var user = await _accountService.LoginAsync(loginDto);
 
+            if (user == null) return Unauthorized();
 
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
-                return Unauthorized();
-
-            var userDto = new UserDto
-            {
-                Email = user.Email,
-                Token = await _tokenService.GenerateToken(user),
-            };
-            return Ok(userDto);
+            return Ok(user);
         }
 
 
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDto registerDto)
         {
-            var user = new ApplicationUser { UserName = registerDto.Username, Email = registerDto.Email };
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                }
-                return ValidationProblem();
-            }
-            await _userManager.AddToRoleAsync(user, registerDto.Role);
-            return StatusCode(201);
+            var result = await _accountService.RegisterAsync(registerDto);
+            return Ok(result);
         }
+
 
         [HttpGet("TestAdminRole"), Authorize(Roles = "Admin")]
         public IActionResult test()
         {
             return Ok("Authorize Success");
         }
+
+
+        [HttpGet("GetMeByContext"), Authorize]
+        public IActionResult GetMe()
+        {
+            var result = _accountService.GetMe();
+            return Ok(result);
+        }
+
 
         [HttpGet("GetMeInBaseController"), Authorize]
         public async Task<IActionResult> GetMyName()
@@ -100,6 +91,7 @@ namespace ApiProjectSabaipare.Controllers
 
             return Ok(accessToken);
         }
+
 
     }
 }
