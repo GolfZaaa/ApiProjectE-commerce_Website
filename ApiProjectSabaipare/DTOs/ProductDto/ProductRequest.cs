@@ -22,6 +22,7 @@ namespace ApiProjectSabaipare.DTOs.ProductDto
 
         [Required]
         public string Type { get; set; }
+        public IFormFileCollection? FormFiles { get; set; }
 
     }
 }

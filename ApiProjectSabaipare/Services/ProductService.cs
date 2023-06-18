@@ -2,51 +2,128 @@
 using ApiProjectSabaipare.DTOs.ProductDto;
 using ApiProjectSabaipare.Models;
 using ApiProjectSabaipare.Services.IService;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiProjectSabaipare.Services
 {
     public class ProductService : IProductService
     {
-        private readonly DataContext dataContext;
+        private readonly IUploadFileService _uploadFileService;
+        private readonly IMapper _mapper;
+        private readonly DataContext _dataContext;
 
-
-        public ProductService(DataContext dataContext)
+        public ProductService(IUploadFileService uploadFileService,IMapper mapper,DataContext dataContext)
         {
-            this.dataContext = dataContext;
+            _uploadFileService = uploadFileService;
+            _mapper = mapper;
+            _dataContext = dataContext;
         }
 
 
         public async Task<List<Product>> GetProductListAsync()
         {
-            var result = await dataContext.Products
+            var result = await _dataContext.Products.Include(p => p.ProductImages)
                 .OrderByDescending(p => p.Id).ToListAsync();
+
+
             return result;
         }
 
-        public async Task CreateAsync(ProductRequest request)
+
+        public async Task<string> CreateAsync(ProductRequest request)
         {
-            var result = new Product()
+            //อัพโหลดไฟล์
+            (string errorMessage, List<string> imageNames) = await UploadImageAsync(request.FormFiles);
+            if (!string.IsNullOrEmpty(errorMessage)) return errorMessage;
+
+
+            var result = _mapper.Map<Product>(request);
+            await _dataContext.Products.AddAsync(result);
+            await _dataContext.SaveChangesAsync();
+
+
+            //จัดการไฟล์ในฐานข้อมูล
+            if (imageNames.Count > 0)
             {
-                Name = request.Name,
-                Price = request.Price,
-                QuantityInStock = request.QuantityInStock,
-                Description = request.Description,
-                Type = request.Type,
-            };
+                var images = new List<ProductImage>();
+                foreach (var image in imageNames)
+                {
+                    images.Add(new ProductImage { ProductId = result.Id, Image = image });
+                }
+                await _dataContext.ProductImages.AddRangeAsync(images);
+            }
 
 
-            await dataContext.Products.AddAsync(result);
-            await dataContext.SaveChangesAsync();
+            await _dataContext.SaveChangesAsync();
+
+
+            return null;
         }
+
 
         public async Task<List<string>> GetTypeAsync()
         {
-            var result = await dataContext.Products.GroupBy(p => p.Type)
+            var result = await _dataContext.Products.GroupBy(p => p.Type)
                 .Select(result => result.Key).ToListAsync();
             return result;
         }
 
+
+        public async Task UpdateAsync(ProductRequest request)
+        {
+            var result = _mapper.Map<Product>(request);
+
+
+            _dataContext.Products.Update(result);
+            await _dataContext.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteAsync(Product product)
+        {
+            _dataContext.Products.Remove(product);
+            await _dataContext.SaveChangesAsync();
+        }
+
+
+        public async Task<List<Product>> SearchAsync(string name)
+        {
+            var result = await _dataContext.Products.Include(p => p.ProductImages)
+                .Where(p => p.Name.Contains(name))
+                .ToListAsync();
+            return result;
+        }
+
+
+        public async Task<Product> GetByIdAsync(int id)
+        {
+            var result = await _dataContext.Products.Include(p => p.ProductImages)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+
+            return result;
+        }
+
+
+        public async Task<(string errorMessage, List<string> imageNames)> UploadImageAsync(IFormFileCollection formFiles)
+        {
+            var errorMessage = string.Empty;
+            var imageNames = new List<string>();
+
+
+            if (_uploadFileService.IsUpload(formFiles))
+            {
+                errorMessage = _uploadFileService.Validation(formFiles);
+                if (string.IsNullOrEmpty(errorMessage))
+                {
+                    //บันทึกลงไฟล์ในโฟลเดอร์ 
+                    imageNames = await _uploadFileService.UploadImages(formFiles);
+                }
+            }
+            return (errorMessage, imageNames);
+        }
 
     }
 

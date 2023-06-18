@@ -21,15 +21,23 @@ namespace ApiProjectSabaipare.Controllers
         public async Task<IActionResult> Get()
         {
             var result = await _productService.GetProductListAsync();
-            return Ok(result);
+
+            var response = result.Select(ProductResponse.FromProduct).ToList();
+            return Ok(response);
+
         }
+
 
         [HttpPost("[action]")]
         public async Task<IActionResult> AddProduct([FromForm] ProductRequest request)
         {
-            await _productService.CreateAsync(request);
+            var result = await _productService.CreateAsync(request);
+
+            if (result != null) return BadRequest(result);
+
             return Ok();
         }
+
 
 
         [HttpGet("[action]")]
@@ -38,6 +46,62 @@ namespace ApiProjectSabaipare.Controllers
             var result = await _productService.GetTypeAsync();
             return Ok(result);
         }
+
+        [HttpPut("[action]")]
+        public async Task<IActionResult> UpdateProduct([FromForm] ProductRequest productRequest)
+        {
+            var result = await _productService.GetByIdAsync((int)productRequest.Id);
+
+
+            if (result == null) return NotFound();
+
+
+            await _productService.UpdateAsync(productRequest);
+
+
+            return Ok();
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteProduct(int id)
+        {
+            var result = await _productService.GetByIdAsync(id);
+
+
+            if (result == null) return NotFound();
+
+
+            await _productService.DeleteAsync(result);
+
+
+            return Ok(new { status = "Deleted", result });
+        }
+
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> SearchProduct([FromQuery] string name = "")
+        {
+            var result = (await _productService.SearchAsync(name))
+                .Select(ProductResponse.FromProduct).ToList();
+
+
+            return Ok(result);
+        }
+
+
+        [HttpGet("[action]/{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var result = await _productService.GetByIdAsync(id);
+
+
+            if (result == null) return NotFound();
+
+
+            return Ok(ProductResponse.FromProduct(result));
+        }
+
 
     }
 }
