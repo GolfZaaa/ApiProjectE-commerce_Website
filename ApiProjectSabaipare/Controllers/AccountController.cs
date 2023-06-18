@@ -1,9 +1,13 @@
 ﻿using ApiProjectSabaipare.DTOs;
 using ApiProjectSabaipare.Models;
+using ApiProjectSabaipare.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ApiProjectSabaipare.Controllers
 {
@@ -11,10 +15,12 @@ namespace ApiProjectSabaipare.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
+        private readonly TokenService _tokenService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountController(UserManager<ApplicationUser> userManager)
+        public AccountController(TokenService tokenService,UserManager<ApplicationUser> userManager)
         {
+            _tokenService = tokenService;
             _userManager = userManager;
         }
 
@@ -35,10 +41,19 @@ namespace ApiProjectSabaipare.Controllers
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Username);
+
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 return Unauthorized();
-            return Ok(user);
+
+            var userDto = new UserDto
+            {
+                Email = user.Email,
+                Token = await _tokenService.GenerateToken(user),
+            };
+            return Ok(userDto);
         }
+
 
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDto registerDto)
@@ -57,6 +72,34 @@ namespace ApiProjectSabaipare.Controllers
             return StatusCode(201);
         }
 
+        [HttpGet("TestAdminRole"), Authorize(Roles = "Admin")]
+        public IActionResult test()
+        {
+            return Ok("Authorize Success");
+        }
+
+        [HttpGet("GetMeInBaseController"), Authorize]
+        public async Task<IActionResult> GetMyName()
+        {
+            //var userName = User.FindFirstValue(ClaimTypes.Name);
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new { user.UserName, roles });
+        }
+
+
+        [HttpGet("GetToken"), Authorize]
+        public async Task<IActionResult> GetToken()
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+            if (accessToken == null)
+            {
+                accessToken = "Not Login";
+            }
+
+            return Ok(accessToken);
+        }
 
     }
 }

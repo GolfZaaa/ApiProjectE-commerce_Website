@@ -1,9 +1,13 @@
 using ApiProjectSabaipare.Data;
 using ApiProjectSabaipare.Models;
+using ApiProjectSabaipare.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +38,23 @@ builder.Services.AddIdentityCore<ApplicationUser>(opt =>
 }).AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<DataContext>();
 
+
+//ยืนยัน Token ที่ได้รับว่าถูกต้องหรือไม่บนเซิฟเวอร์
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                       .AddJwtBearer(opt =>
+                       {
+                           opt.TokenValidationParameters = new TokenValidationParameters
+                           {
+                               ValidateIssuer = false,
+                               ValidateAudience = false,
+                               ValidateLifetime = true,
+                               ValidateIssuerSigningKey = true,
+                               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                                   .GetBytes(builder.Configuration["JWTSettings:TokenKey"]))
+                           };
+                       });
+
+builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
