@@ -32,7 +32,9 @@ namespace ApiProjectSabaipare.Services
             foreach (var user in result)
             {
                 var userRole = await _userManager.GetRolesAsync(user);
-                users.Add(new { user.UserName, userRole });
+                var useremail = await _userManager.GetEmailAsync(user);
+                var userid = await _userManager.GetUserIdAsync(user);
+                users.Add(new { user.UserName, userRole,useremail, userid });
             }
             return users;
         }

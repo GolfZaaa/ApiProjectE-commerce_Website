@@ -52,10 +52,10 @@ namespace ApiProjectSabaipare.Services
                     images.Add(new ProductImage { ProductId = result.Id, Image = image });
                 }
                 await _dataContext.ProductImages.AddRangeAsync(images);
+                await _dataContext.SaveChangesAsync();
+
             }
 
-
-            await _dataContext.SaveChangesAsync();
 
 
             return null;
@@ -70,7 +70,7 @@ namespace ApiProjectSabaipare.Services
         }
 
 
-        public async Task<string> UpdateAsync(ProductRequest request)
+        public async Task<object> UpdateAsync(ProductRequest request)
         {
             //ตรวจสอบและอัพโหลดไฟล์
             (string errorMessage, List<string> imageNames) = await UploadImageAsync(request.FormFiles);
@@ -111,6 +111,7 @@ namespace ApiProjectSabaipare.Services
                 await _dataContext.ProductImages.AddRangeAsync(images);
                 await _dataContext.SaveChangesAsync();
             }
+
             return null;
         }
 
@@ -143,12 +144,11 @@ namespace ApiProjectSabaipare.Services
         }
 
 
-        public async Task<Product> GetByIdAsync(int id)
+        public async Task<Product> GetByIdAsync(int? id)
         {
             var result = await _dataContext.Products.Include(p => p.ProductImages)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
-
 
             return result;
         }

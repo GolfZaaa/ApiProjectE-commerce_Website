@@ -43,7 +43,7 @@ namespace ApiProjectSabaipare.Controllers
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromForm]LoginDto loginDto)
+        public async Task<IActionResult> Login(LoginDto loginDto)
         {
             var user = await _accountService.LoginAsync(loginDto);
 
@@ -54,7 +54,7 @@ namespace ApiProjectSabaipare.Controllers
 
 
         [HttpPost("register")]
-        public async Task<ActionResult> Register([FromForm]RegisterDto registerDto)
+        public async Task<ActionResult> Register(RegisterDto registerDto)
         {
             var result = await _accountService.RegisterAsync(registerDto);
             return Ok(result);

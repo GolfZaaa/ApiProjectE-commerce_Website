@@ -29,7 +29,7 @@ namespace ApiProjectSabaipare.Controllers
 
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> AddProduct([FromForm] ProductRequest request)
+        public async Task<IActionResult> AddProduct(ProductRequest request)
         {
             var result = await _productService.CreateAsync(request);
 
@@ -48,17 +48,14 @@ namespace ApiProjectSabaipare.Controllers
         }
 
         [HttpPut("[action]")]
-        public async Task<IActionResult> UpdateProduct([FromForm] ProductRequest productRequest)
+        public async Task<IActionResult> UpdateProduct(ProductRequest productRequest)
         {
             var result = await _productService.GetByIdAsync((int)productRequest.Id);
-
-
             if (result == null) return NotFound();
 
 
             var resultUpdate = await _productService.UpdateAsync(productRequest);
-            if (resultUpdate != null) return BadRequest(resultUpdate);
-
+            if (resultUpdate == null) return BadRequest(resultUpdate);
 
             return Ok();
         }

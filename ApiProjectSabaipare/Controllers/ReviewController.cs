@@ -35,19 +35,17 @@ namespace ApiCrudProjectS.Controllers
 
 
         [HttpPost]
-        [Authorize]
         [Route("CreateAndUpdateReview")]
         public async Task<Object> CreateAndUpdateReview(Review review)
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            if (review.Id == 0) _dataContext.Set<Review>().Add(review);
 
-
-            if (review.Id == 0) _dataContext.Entry(review).State = EntityState.Added;
-            else _dataContext.Entry(review).State = EntityState.Modified;
+            else _dataContext.Set<Review>().Update(review);
 
             await _dataContext.SaveChangesAsync();
             return review;
         }
+
 
 
 

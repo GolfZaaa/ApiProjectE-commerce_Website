@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiProjectSabaipare.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230619085152_InitDb")]
+    [Migration("20230620040001_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -62,11 +62,9 @@ namespace ApiProjectSabaipare.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Problemlog");
                 });
@@ -126,14 +124,15 @@ namespace ApiProjectSabaipare.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Star")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -379,13 +378,13 @@ namespace ApiProjectSabaipare.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "9aa06e40-ab14-45cf-a6aa-4b8bf4629bff",
+                            Id = "447d2e29-4493-45df-9fc4-571c9957d38c",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         },
                         new
                         {
-                            Id = "95fae559-8b84-4487-904e-a08f61bcbaca",
+                            Id = "b350a303-a08b-4c7f-9f0a-1239d409cc77",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -495,17 +494,6 @@ namespace ApiProjectSabaipare.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("ApiCrudProjectS.Models.Problemlog", b =>
-                {
-                    b.HasOne("ApiProjectSabaipare.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ApiProjectSabaipare.Models.CartAccount.Cart", b =>

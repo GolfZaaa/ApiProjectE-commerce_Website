@@ -67,6 +67,21 @@ namespace ApiProjectSabaipare.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Problemlog",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Problemlog", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Products",
                 columns: table => new
                 {
@@ -120,8 +135,8 @@ namespace ApiProjectSabaipare.Migrations
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Star = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: true)
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -254,27 +269,6 @@ namespace ApiProjectSabaipare.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Problemlog",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Problemlog", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Problemlog_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductImages",
                 columns: table => new
                 {
@@ -326,8 +320,8 @@ namespace ApiProjectSabaipare.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "95fae559-8b84-4487-904e-a08f61bcbaca", null, "Admin", "ADMIN" },
-                    { "9aa06e40-ab14-45cf-a6aa-4b8bf4629bff", null, "Member", "MEMBER" }
+                    { "447d2e29-4493-45df-9fc4-571c9957d38c", null, "Member", "MEMBER" },
+                    { "b350a303-a08b-4c7f-9f0a-1239d409cc77", null, "Admin", "ADMIN" }
                 });
 
             migrationBuilder.InsertData(
@@ -394,11 +388,6 @@ namespace ApiProjectSabaipare.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Carts_UserId",
                 table: "Carts",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Problemlog_UserId",
-                table: "Problemlog",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
